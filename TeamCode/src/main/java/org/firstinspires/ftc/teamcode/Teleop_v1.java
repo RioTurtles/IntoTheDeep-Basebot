@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -94,9 +95,8 @@ public class Teleop_v1 extends LinearOpMode {
 
                 if (robot.isSliderInPosition()) {
                     if (gamepad.right_trigger > 0 && !(lastGamepad.right_trigger > 0)) {
-                        //if (robot.clawOpen) robot.clawClose(); else robot.clawOpen();
-                        robot.clawOpen();
-                    } else robot.clawClose();
+                        if (robot.clawOpen) robot.clawClose(); else robot.clawOpen();
+                    }
                 }
 
                 if (gamepad.left_bumper && !lastGamepad.left_bumper) {
@@ -127,28 +127,30 @@ public class Teleop_v1 extends LinearOpMode {
             if (gamepad.triangle) robot.height = 2;
 
             if (gamepad.dpad_left && !lastGamepad.dpad_left) {
-                timer1.reset();
+                robot.setSlider(1000);
                 state = States.RIGGING;
+                timer1.reset();
             }
 
             if (state == States.RIGGING) {
-                robot.setSlider(1000);
+                if (gamepad.dpad_up) robot.ascendUpwards(0.4); else robot.ascendStop();
+                if (gamepad.dpad_down) robot.ascendDownwards(0.4); else robot.ascendStop();
 
-                if (gamepad.dpad_down) {
-                    robot.sliderL.setPower(-1);
-                    robot.sliderR.setPower(-1);
-                } else {
-                    robot.sliderL.setPower(0);
-                    robot.sliderR.setPower(0);
+                if (gamepad.left_bumper && !lastGamepad.left_bumper) {
+                    robot.setSliderPosition(1, 0);
+                    state = States.INTAKE_READY;
                 }
+            }
 
-                if (gamepad.dpad_up) {
-                    robot.sliderL.setPower(1);
-                    robot.sliderR.setPower(1);
-                } else {
-                    robot.sliderL.setPower(0);
-                    robot.sliderR.setPower(0);
-                }
+            // Slider emergency resets
+            if (gamepad.options) {
+                robot.ascendDownwards(0.75);  // Ascending downwards raises the sliders
+                robot.sliderL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.sliderR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            } else if (gamepad.share) {
+                robot.ascendUpwards(0.75);  // Ascending upwards retracts the sliders
+                robot.sliderL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.sliderR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
 
             telemetry.addData("State", state);

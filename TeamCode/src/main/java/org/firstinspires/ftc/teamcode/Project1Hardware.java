@@ -270,55 +270,49 @@ public class Project1Hardware {
         sliderR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    // Mode 1: Basket, Mode 2: Specimen
-    // Height 0: Reset, Height 1: Low, Height 2: High
+    /**
+     * Sets slider preset positions.
+     * @param mode 1 - Basket | 2 - Specimen
+     * @param height 0 - Reset | 1 - Low | 2 - High
+     */
     public void setSliderPosition(int mode, int height) {
         switch (height) {
             // Reset
-            case 0:
-                sliderL.setTargetPosition(0);
-                sliderR.setTargetPosition(0);
-                break;
+            case 0: setSlider(0); break;
             // Low
             case 1:
                 switch (mode) {
-                    // Basket
-                    case 1:
-                        sliderL.setTargetPosition(0);
-                        sliderR.setTargetPosition(0);
-                        break;
-                    // Specimen
-                    case 2:
-                        sliderL.setTargetPosition(1675);
-                        sliderR.setTargetPosition(1675);
-                        break;
+                    case 1: setSlider(0); break;  // Basket
+                    case 2: setSlider(1675); break;  // Specimen
                 }
                 break;
-
             // High
             case 2:
                 switch (mode) {
-                    // Basket
-                    case 1:
-                        sliderL.setTargetPosition(2100);
-                        sliderR.setTargetPosition(2100);
-                        break;
-                    // Specimen
-                    case 2:
-                        sliderL.setTargetPosition(3000);
-                        sliderR.setTargetPosition(3000);
-                        break;
+                    case 1: setSlider(2100); break;  // Basket
+                    case 2: setSlider(3000); break;  // Specimen
                 }
                 break;
         }
-
-        sliderL.setPower(1);
-        sliderR.setPower(1);
-        sliderL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        sliderR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public void setSliderPosition() {setSliderPosition(this.mode, this.height);}
+
+    public void ascendUpwards(double power) {
+        sliderL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        sliderR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        sliderL.setPower(-Math.abs(power));
+        sliderR.setPower(-Math.abs(power));
+    }
+
+    public void ascendDownwards(double power) {
+        sliderL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        sliderR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        sliderL.setPower(Math.abs(power));
+        sliderR.setPower(Math.abs(power));
+    }
+
+    public void ascendStop() {ascendUpwards(0);}
 
     public boolean isSliderInPosition() {
         return Math.abs(sliderL.getCurrentPosition() - sliderL.getTargetPosition()) <= 5;
