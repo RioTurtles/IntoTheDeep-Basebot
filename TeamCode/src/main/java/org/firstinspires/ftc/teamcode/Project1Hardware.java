@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -27,6 +28,8 @@ public class Project1Hardware {
     public Project1Hardware(HardwareMap hardwareMap) {
         init(hardwareMap);
         reset();
+        mode = 1;
+        height = 2;
         clawOpen = false;
         armUp = false;
     }
@@ -72,6 +75,10 @@ public class Project1Hardware {
         sliderR.setDirection(DcMotorSimple.Direction.REVERSE);
         sliderL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         sliderR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        armL.setDirection(Servo.Direction.REVERSE);
+        armR.setDirection(Servo.Direction.FORWARD);
+        claw.setDirection(Servo.Direction.FORWARD);
 
         imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
@@ -241,14 +248,14 @@ public class Project1Hardware {
     public void clawClose() {claw.setPosition(0); clawOpen = false;}
 
     public void armUp() {
-        armL.setPosition(0.25);
-        armR.setPosition(0.25);
+        armL.setPosition(0.51);
+        armR.setPosition(0.51);
         armUp = false;
     }
 
     public void armDown() {
-        armL.setPosition(0.1);
-        armR.setPosition(0.1);
+        armL.setPosition(0.23);
+        armR.setPosition(0.23);
         armUp = false;
     }
 
@@ -261,12 +268,12 @@ public class Project1Hardware {
             case 1:
                 switch (mode) {
                     case 1:
-                        sliderL.setTargetPosition(400);
-                        sliderR.setTargetPosition(400);
+                        sliderL.setTargetPosition(2100);
+                        sliderR.setTargetPosition(2100);
                         break;
                     case 2:
-                        sliderL.setTargetPosition(300);
-                        sliderR.setTargetPosition(300);
+                        sliderL.setTargetPosition(3000);
+                        sliderR.setTargetPosition(3000);
                         break;
                 }
                 break;
@@ -274,12 +281,12 @@ public class Project1Hardware {
             case 2:
                 switch (mode) {
                     case 1:
-                        sliderL.setTargetPosition(700);
-                        sliderR.setTargetPosition(700);
+                        sliderL.setTargetPosition(0);
+                        sliderR.setTargetPosition(0);
                         break;
                     case 2:
-                        sliderL.setTargetPosition(800);
-                        sliderR.setTargetPosition(800);
+                        sliderL.setTargetPosition(1675);
+                        sliderR.setTargetPosition(1675);
                         break;
                 }
                 break;
