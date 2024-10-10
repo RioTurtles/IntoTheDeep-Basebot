@@ -254,39 +254,59 @@ public class Project1Hardware {
     }
 
     public void armDown() {
-        armL.setPosition(0.23);
-        armR.setPosition(0.23);
+        // Old value: 0.23
+        armL.setPosition(0.28);
+        armR.setPosition(0.28);
         armUp = false;
     }
 
+    public void setSlider(int value) {
+        sliderL.setTargetPosition(value);
+        sliderR.setTargetPosition(value);
+
+        sliderL.setPower(1);
+        sliderR.setPower(1);
+        sliderL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        sliderR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    // Mode 1: Basket, Mode 2: Specimen
+    // Height 0: Reset, Height 1: Low, Height 2: High
     public void setSliderPosition(int mode, int height) {
         switch (height) {
+            // Reset
             case 0:
                 sliderL.setTargetPosition(0);
                 sliderR.setTargetPosition(0);
                 break;
+            // Low
             case 1:
                 switch (mode) {
-                    case 1:
-                        sliderL.setTargetPosition(2100);
-                        sliderR.setTargetPosition(2100);
-                        break;
-                    case 2:
-                        sliderL.setTargetPosition(3000);
-                        sliderR.setTargetPosition(3000);
-                        break;
-                }
-                break;
-
-            case 2:
-                switch (mode) {
+                    // Basket
                     case 1:
                         sliderL.setTargetPosition(0);
                         sliderR.setTargetPosition(0);
                         break;
+                    // Specimen
                     case 2:
                         sliderL.setTargetPosition(1675);
                         sliderR.setTargetPosition(1675);
+                        break;
+                }
+                break;
+
+            // High
+            case 2:
+                switch (mode) {
+                    // Basket
+                    case 1:
+                        sliderL.setTargetPosition(2100);
+                        sliderR.setTargetPosition(2100);
+                        break;
+                    // Specimen
+                    case 2:
+                        sliderL.setTargetPosition(3000);
+                        sliderR.setTargetPosition(3000);
                         break;
                 }
                 break;
