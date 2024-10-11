@@ -21,7 +21,7 @@ public class Teleop_v1 extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         robot = new Project1Hardware(hardwareMap);
-        state = States.INTAKE_READY;
+        state = States.INIT;
         gamepad = new Gamepad();
         lastGamepad = new Gamepad();
         timer1 = new ElapsedTime();
@@ -50,26 +50,28 @@ public class Teleop_v1 extends LinearOpMode {
                 if (gamepad.right_bumper && !lastGamepad.right_bumper) {
                     timer1.reset();
                     state = States.INTAKE_READY;
+                    continue;
                 }
             }
 
             // Ready to grab samples or specimens
             if (state == States.INTAKE_READY) {
-                if (timer1.milliseconds() > 300) robot.clawOpen();
+                if (timer1.milliseconds() > 200) robot.clawOpen();
                 robot.armDown();
 
-                if (gamepad.right_trigger > 0 && !(lastGamepad.right_trigger > 0)) {
-                    robot.clawOpen();
-                } else robot.clawClose();
-
                 if (gamepad.left_bumper && !lastGamepad.left_bumper) {
-                    timer1.reset();
-                    state = States.INIT;
+                    if (robot.clawOpen) robot.clawClose(); else robot.clawOpen();
                 }
+
+//                if (gamepad.left_bumper && !lastGamepad.left_bumper) {
+//                    timer1.reset();
+//                    state = States.INIT;
+//                }
 
                 if (gamepad.right_bumper && !lastGamepad.right_bumper) {
                     timer1.reset();
                     state = States.TRANSFER;
+                    continue;
                 }
             }
 
@@ -86,6 +88,8 @@ public class Teleop_v1 extends LinearOpMode {
 
                 if (gamepad.right_bumper && !lastGamepad.right_bumper) {
                     state = States.SCORING_READY;
+                    timer1.reset();
+                    continue;
                 }
             }
 
@@ -103,6 +107,7 @@ public class Teleop_v1 extends LinearOpMode {
                     robot.setSliderPosition(1, 0);
                     state = States.RETURN;
                     timer1.reset();
+                    continue;
                 }
             }
 
@@ -118,6 +123,7 @@ public class Teleop_v1 extends LinearOpMode {
                 if (gamepad.left_bumper && !gamepad.left_bumper) {
                     state = States.SCORING_READY;
                     timer1.reset();
+                    continue;
                 }
             }
 
@@ -130,6 +136,7 @@ public class Teleop_v1 extends LinearOpMode {
                 robot.setSlider(1000);
                 state = States.RIGGING;
                 timer1.reset();
+                continue;
             }
 
             if (state == States.RIGGING) {
@@ -139,6 +146,7 @@ public class Teleop_v1 extends LinearOpMode {
                 if (gamepad.left_bumper && !lastGamepad.left_bumper) {
                     robot.setSliderPosition(1, 0);
                     state = States.INTAKE_READY;
+                    continue;
                 }
             }
 

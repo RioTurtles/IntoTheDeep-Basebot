@@ -244,19 +244,19 @@ public class Project1Hardware {
     }
 
     // Claw tuned
-    public void clawOpen() {claw.setPosition(0.2); clawOpen = true;}
-    public void clawClose() {claw.setPosition(0); clawOpen = false;}
+    public void clawOpen() {claw.setPosition(0.45); clawOpen = true;}
+    public void clawClose() {claw.setPosition(0.17); clawOpen = false;}
 
     public void armUp() {
-        armL.setPosition(0.51);
-        armR.setPosition(0.51);
+        armL.setPosition(0.48);
+        armR.setPosition(0.48);
         armUp = false;
     }
 
     public void armDown() {
         // Old value: 0.23
-        armL.setPosition(0.28);
-        armR.setPosition(0.28);
+        armL.setPosition(0.2);
+        armR.setPosition(0.2);
         armUp = false;
     }
 
