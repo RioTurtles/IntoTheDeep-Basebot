@@ -15,8 +15,10 @@ public class Teleop_v1 extends LinearOpMode {
     Gamepad gamepad;
     Gamepad lastGamepad;
     double direction_x, direction_y, pivot, heading;
+    boolean intakeInitialActionsFinished, confirmSpecimen;
 
     ElapsedTime timer1;
+    ElapsedTime timer2;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -25,8 +27,10 @@ public class Teleop_v1 extends LinearOpMode {
         gamepad = new Gamepad();
         lastGamepad = new Gamepad();
         timer1 = new ElapsedTime();
+        timer2 = new ElapsedTime();
 
         waitForStart();
+        confirmSpecimen = false;
         robot.imu.resetYaw();
         timer1.reset();
 
@@ -34,7 +38,7 @@ public class Teleop_v1 extends LinearOpMode {
             lastGamepad.copy(gamepad);
             gamepad.copy(gamepad1);
 
-            direction_x = -gamepad1.left_stick_x;
+            direction_x = gamepad1.left_stick_x;
             direction_y = gamepad1.left_stick_y;
             pivot = gamepad1.right_stick_x * 0.8;
             heading = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
@@ -56,20 +60,30 @@ public class Teleop_v1 extends LinearOpMode {
 
             // Ready to grab samples or specimens
             if (state == States.INTAKE_READY) {
-                if (timer1.milliseconds() > 200) robot.clawOpen();
-                robot.armDown();
+                if (!intakeInitialActionsFinished) {
+                    robot.armDown();
+                    if (timer1.milliseconds() > 400) {
+                        robot.clawOpen();
+                        intakeInitialActionsFinished = true;
+                    }
+                }
 
-                if (gamepad.left_bumper && !lastGamepad.left_bumper) {
+                if (gamepad.right_trigger > 0 && !(lastGamepad.right_trigger > 0)) {
                     if (robot.clawOpen) robot.clawClose(); else robot.clawOpen();
                 }
 
-//                if (gamepad.left_bumper && !lastGamepad.left_bumper) {
-//                    timer1.reset();
-//                    state = States.INIT;
-//                }
+                if (gamepad.left_trigger > 0 && !(lastGamepad.left_trigger > 0)) {
+                    robot.middlePosition = !robot.middlePosition;
+                    if (robot.armUp) robot.armUp();
+                }
+
+                if (gamepad.left_bumper && !lastGamepad.left_bumper) {
+                    if (robot.armUp) robot.armDown(); else robot.armUp();
+                }
 
                 if (gamepad.right_bumper && !lastGamepad.right_bumper) {
                     timer1.reset();
+                    intakeInitialActionsFinished = false;
                     state = States.TRANSFER;
                     continue;
                 }
@@ -77,6 +91,7 @@ public class Teleop_v1 extends LinearOpMode {
 
             // Samples possessed, arm has gone up, going to scoring position
             if (state == States.TRANSFER) {
+                robot.middlePosition = false;
                 robot.clawClose();
                 if (timer1.milliseconds() > 300) robot.armUp();
 
@@ -95,16 +110,34 @@ public class Teleop_v1 extends LinearOpMode {
 
             // Slider is raised, ready for scoring
             if (state == States.SCORING_READY) {
-                robot.setSliderPosition();
+                if (!confirmSpecimen) robot.setSliderPosition();
+                else {
+                    robot.setSliderPosition(2, 3);
+                    if (timer2.milliseconds() > 500) robot.clawOpen();
+                }
 
                 if (robot.isSliderInPosition()) {
                     if (gamepad.right_trigger > 0 && !(lastGamepad.right_trigger > 0)) {
-                        if (robot.clawOpen) robot.clawClose(); else robot.clawOpen();
+                        if (robot.mode == 1) {
+                            if (robot.clawOpen) robot.clawClose(); else robot.clawOpen();
+                        } else {
+                            confirmSpecimen = !confirmSpecimen;
+                            if (confirmSpecimen) timer2.reset();
+                        }
                     }
                 }
 
                 if (gamepad.left_bumper && !lastGamepad.left_bumper) {
                     robot.setSliderPosition(1, 0);
+                    confirmSpecimen = false;
+                    state = States.TRANSFER;
+                    timer1.reset();
+                    continue;
+                }
+
+                if (gamepad.right_bumper && !lastGamepad.right_bumper) {
+                    robot.clawOpen();
+                    confirmSpecimen = false;
                     state = States.RETURN;
                     timer1.reset();
                     continue;
@@ -162,11 +195,14 @@ public class Teleop_v1 extends LinearOpMode {
             }
 
             telemetry.addData("State", state);
-            telemetry.addData("Mode", robot.mode);
-            telemetry.addData("Height", robot.height);
+            telemetry.addData("Mode", robot.mode());
+            telemetry.addData("Height", robot.height());
+            telemetry.addLine();
+            telemetry.addData("Slider-L", robot.sliderLeftInfo());
+            telemetry.addData("Slider-R", robot.sliderRightInfo());
 
             telemetry.update();
-            robot.drivetrain.remote(direction_y, -pivot, direction_x, heading);
+            robot.drivetrain.remote(direction_y, -direction_x, -pivot, heading);
         }
     }
 

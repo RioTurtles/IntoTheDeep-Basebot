@@ -11,8 +11,6 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 public class Project1Hardware {
     DcMotor motorFL, motorFR;
     DcMotor motorBL, motorBR;
@@ -23,7 +21,7 @@ public class Project1Hardware {
     IMU imu;
 
     int mode, height;
-    boolean clawOpen, armUp;
+    boolean clawOpen, armUp, middlePosition;
 
     public Project1Hardware(HardwareMap hardwareMap) {
         init(hardwareMap);
@@ -32,6 +30,7 @@ public class Project1Hardware {
         height = 2;
         clawOpen = false;
         armUp = false;
+        middlePosition = false;
     }
 
     private void init(@NonNull HardwareMap hardwareMap) {
@@ -68,8 +67,8 @@ public class Project1Hardware {
 
         motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
         motorFR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBL.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorBL.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorBR.setDirection(DcMotorSimple.Direction.FORWARD);
 
         sliderL.setDirection(DcMotorSimple.Direction.FORWARD);
         sliderR.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -115,8 +114,8 @@ public class Project1Hardware {
 
             FLPower = power * (cos/max) + pivot;
             FRPower = power * sin/max - pivot;
-            BLPower = power * -(sin/max) - pivot;
-            BRPower = power * -(cos/max) + pivot;
+            BLPower = power * (cos/max) - pivot;
+            BRPower = power * (sin/max) + pivot;
 
             robot.motorFL.setPower(-FLPower);
             robot.motorFR.setPower(-FRPower);
@@ -245,18 +244,22 @@ public class Project1Hardware {
 
     // Claw tuned
     public void clawOpen() {claw.setPosition(0.45); clawOpen = true;}
-    public void clawClose() {claw.setPosition(0.17); clawOpen = false;}
+    public void clawClose() {claw.setPosition(0.16); clawOpen = false;}
 
     public void armUp() {
-        armL.setPosition(0.48);
-        armR.setPosition(0.48);
-        armUp = false;
+        if (middlePosition) {
+            armL.setPosition(0.25);
+            armR.setPosition(0.25);
+        } else {
+            armL.setPosition(0.44);
+            armR.setPosition(0.44);
+        }
+        armUp = true;
     }
 
     public void armDown() {
-        // Old value: 0.23
-        armL.setPosition(0.2);
-        armR.setPosition(0.2);
+        armL.setPosition(0.15);
+        armR.setPosition(0.15);
         armUp = false;
     }
 
@@ -279,20 +282,20 @@ public class Project1Hardware {
         switch (height) {
             // Reset
             case 0: setSlider(0); break;
-            // Low
             case 1:
                 switch (mode) {
-                    case 1: setSlider(0); break;  // Basket
-                    case 2: setSlider(1675); break;  // Specimen
+                    case 1: setSlider(1800); break;  // Low Basket
+                    case 2: setSlider(0); break;  // Low Specimen
                 }
                 break;
-            // High
             case 2:
                 switch (mode) {
-                    case 1: setSlider(2100); break;  // Basket
-                    case 2: setSlider(3000); break;  // Specimen
+                    case 1: setSlider(3360); break;  // High Basket
+                    case 2: setSlider(1400); break;  // High Specimen
                 }
                 break;
+            case 3:
+                assert mode == 2; setSlider(670); break;  // Confirm specimen
         }
     }
 
@@ -316,5 +319,33 @@ public class Project1Hardware {
 
     public boolean isSliderInPosition() {
         return Math.abs(sliderL.getCurrentPosition() - sliderL.getTargetPosition()) <= 5;
+    }
+
+    public String mode() {
+        switch (mode) {
+            case 1: return "Sample";
+            case 2: return "Specimen";
+        }
+        return "ERROR";
+    }
+
+    public String height() {
+        switch (height) {
+            case 1: return "Low";
+            case 2: return "High";
+        }
+        return "ERROR";
+    }
+
+    public String sliderLeftInfo() {
+        return sliderL.getPower() + " | "
+                + sliderL.getCurrentPosition() + " (T: " + sliderL.getTargetPosition() + " | R: "
+                + Math.abs(sliderL.getCurrentPosition() - sliderL.getTargetPosition()) + ")";
+    }
+
+    public String sliderRightInfo() {
+        return sliderR.getPower() + " | "
+                + sliderR.getCurrentPosition() + " (T: " + sliderR.getTargetPosition() + " | R: "
+                + Math.abs(sliderR.getCurrentPosition() - sliderR.getTargetPosition()) + ")";
     }
 }
