@@ -15,7 +15,7 @@ public class Teleop_v1 extends LinearOpMode {
     Gamepad gamepad;
     Gamepad lastGamepad;
     double direction_x, direction_y, pivot, heading;
-    boolean intakeInitialActionsFinished, confirmSpecimen;
+    boolean intakeInitialActionsFinished, confirmSpecimen, intakeSubmersible;
 
     ElapsedTime timer1;
     ElapsedTime timer2;
@@ -31,6 +31,7 @@ public class Teleop_v1 extends LinearOpMode {
 
         waitForStart();
         confirmSpecimen = false;
+        intakeSubmersible = true;
         robot.imu.resetYaw();
         timer1.reset();
 
@@ -60,6 +61,7 @@ public class Teleop_v1 extends LinearOpMode {
 
             // Ready to grab samples or specimens
             if (state == States.INTAKE_READY) {
+                robot.middlePosition = intakeSubmersible;
                 if (!intakeInitialActionsFinished) {
                     robot.armDown();
                     if (timer1.milliseconds() > 400) {
@@ -73,7 +75,8 @@ public class Teleop_v1 extends LinearOpMode {
                 }
 
                 if (gamepad.left_trigger > 0 && !(lastGamepad.left_trigger > 0)) {
-                    robot.middlePosition = !robot.middlePosition;
+                    intakeSubmersible = !intakeSubmersible;
+                    robot.middlePosition = intakeSubmersible;
                     if (robot.armUp) robot.armUp();
                 }
 
@@ -105,6 +108,10 @@ public class Teleop_v1 extends LinearOpMode {
                     state = States.SCORING_READY;
                     timer1.reset();
                     continue;
+                }
+
+                if (gamepad.right_trigger > 0 && !(lastGamepad.right_trigger > 0)) {
+                    if (robot.clawOpen) robot.clawClose(); else robot.clawOpen();
                 }
             }
 
@@ -150,6 +157,7 @@ public class Teleop_v1 extends LinearOpMode {
                 robot.clawClose();
 
                 if (robot.isSliderInPosition() && gamepad.right_bumper && !lastGamepad.right_bumper) {
+                    robot.middlePosition = intakeSubmersible;
                     state = States.INTAKE_READY;
                 }
 
@@ -166,15 +174,23 @@ public class Teleop_v1 extends LinearOpMode {
             if (gamepad.triangle) robot.height = 2;
 
             if (gamepad.dpad_left && !lastGamepad.dpad_left) {
-                robot.setSlider(1000);
+                robot.setSlider(1750);
                 state = States.RIGGING;
                 timer1.reset();
                 continue;
             }
 
             if (state == States.RIGGING) {
-                if (gamepad.dpad_up) robot.ascendUpwards(0.4); else robot.ascendStop();
-                if (gamepad.dpad_down) robot.ascendDownwards(0.4); else robot.ascendStop();
+                robot.middlePosition = false;
+                robot.clawClose();
+                robot.armUp();
+                if (gamepad.dpad_up && !lastGamepad.dpad_up) {
+                    robot.setSlider(robot.sliderL.getTargetPosition() - 100);
+                }
+                if (gamepad.dpad_down) {
+                    robot.setSlider(robot.sliderL.getTargetPosition() + 100);
+                }
+                if (gamepad.dpad_right) robot.setSlider(1750);
 
                 if (gamepad.left_bumper && !lastGamepad.left_bumper) {
                     robot.setSliderPosition(1, 0);
@@ -185,11 +201,11 @@ public class Teleop_v1 extends LinearOpMode {
 
             // Slider emergency resets
             if (gamepad.options) {
-                robot.ascendDownwards(0.75);  // Ascending downwards raises the sliders
+                robot.ascendDownwards(1);  // Ascending downwards raises the sliders
                 robot.sliderL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 robot.sliderR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             } else if (gamepad.share) {
-                robot.ascendUpwards(0.75);  // Ascending upwards retracts the sliders
+                robot.ascendUpwards(1);  // Ascending upwards retracts the sliders
                 robot.sliderL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 robot.sliderR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
