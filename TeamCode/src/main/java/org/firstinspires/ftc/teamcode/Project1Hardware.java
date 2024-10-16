@@ -258,8 +258,13 @@ public class Project1Hardware {
     }
 
     public void armDown() {
-        armL.setPosition(0.15);
-        armR.setPosition(0.15);
+        if (middlePosition) {
+            armL.setPosition(0.14);
+            armR.setPosition(0.14);
+        } else {
+            armL.setPosition(0.16);
+            armR.setPosition(0.16);
+        }
         armUp = false;
     }
 
